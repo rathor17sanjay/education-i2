@@ -18,6 +18,7 @@ import argparse
 import concurrent.futures
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import Iterator
@@ -105,6 +106,26 @@ CONTEXT:
 """
 
 
+_LITERAL_UNICODE_ESCAPE_RE = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def _fix_literal_unicode_escapes(obj):
+    """The model occasionally writes currency symbols (e.g. Rupee) as the
+    literal text `\\u20b9` instead of the actual character -- this isn't a
+    JSON-encoding issue (the SDK already decodes real JSON escapes), it's
+    the model generating those six characters as string content. Walk the
+    structure and repair any string containing that pattern."""
+    if isinstance(obj, str):
+        if "\\u" in obj:
+            return _LITERAL_UNICODE_ESCAPE_RE.sub(lambda m: chr(int(m.group(1), 16)), obj)
+        return obj
+    if isinstance(obj, list):
+        return [_fix_literal_unicode_escapes(x) for x in obj]
+    if isinstance(obj, dict):
+        return {k: _fix_literal_unicode_escapes(v) for k, v in obj.items()}
+    return obj
+
+
 def _generate_blocks(tenant_name: str, question: str, chunks: list[dict]) -> dict:
     response = _get_client().messages.create(
         model=MODEL,
@@ -125,7 +146,7 @@ def _generate_blocks(tenant_name: str, question: str, chunks: list[dict]) -> dic
             # payload to the frontend.
             if isinstance(result.get("blocks"), str):
                 result["blocks"] = json.loads(result["blocks"])
-            return result
+            return _fix_literal_unicode_escapes(result)
     raise RuntimeError("model did not call emit_blocks")
 
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 
 // Persistent across every route -- never re-renders on navigation, per
@@ -25,10 +26,10 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-bg px-6 py-4">
-      <Link href="/" className="font-display text-lg text-text">
-        GT CampusAI
+      <Link href="/">
+        <Image src="/bmu-logo.png" alt="BML Munjal University" width={130} height={50} priority />
       </Link>
-      <div className="flex items-center gap-4 text-sm text-text-muted">
+      <div className="flex items-center gap-4 text-base text-text-muted">
         <button type="button" onClick={saveResult} className="hover:text-text">
           {label}
         </button>

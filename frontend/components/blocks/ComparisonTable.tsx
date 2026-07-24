@@ -3,13 +3,13 @@ import type { ComparisonTableBlock } from "@/lib/blocks";
 export default function ComparisonTable({ block }: { block: ComparisonTableBlock }) {
   return (
     <div className="rounded-xl border border-border bg-card overflow-x-auto">
-      <table className="w-full text-left text-sm">
+      <table className="w-full text-left text-base">
         <thead>
           <tr>
             {block.headers.map((header, i) => (
               <th
                 key={i}
-                className="px-4 py-3 font-display text-accent border-b border-border whitespace-nowrap"
+                className="px-4 py-3 font-display font-semibold text-lg text-accent border-b border-border whitespace-nowrap"
               >
                 {header}
               </th>

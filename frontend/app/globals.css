@@ -2,22 +2,30 @@
 
 /*
  * Per-tenant theme, delivered as CSS custom properties (CLAUDE.md's decided
- * theming approach). Phase 0 hardcodes BMU's palette here since there's
- * only one pilot tenant and no backend theme-delivery endpoint yet -- when
- * that lands, these become the fallback defaults, not the only source.
- * Components never reference hex values directly, only these vars (via the
- * Tailwind tokens mapped below).
+ * theming approach). Phase 0 hardcodes BMU's actual brand here since
+ * there's only one pilot tenant and no backend theme-delivery endpoint yet
+ * -- when that lands, these become the fallback defaults, not the only
+ * source. Components never reference hex values directly, only these vars
+ * (via the Tailwind tokens mapped below).
+ *
+ * Colors and font are pulled from bmu.edu.in's live site, not invented:
+ * --color-accent (#e83c44) is the exact red used on every "Apply Now" /
+ * "Enquire Now" button there, and the background is a near-black navy
+ * echoing their black header rather than an arbitrary dark theme.
+ * BMU's real typeface ("Amplitude") is a proprietary font we can't legally
+ * bundle, so Poppins stands in as the closest open geometric sans with a
+ * similar rounded, bold-headline character.
  */
 :root {
-  --color-bg: #16232e;
-  --color-bg-elevated: #1d2f3d;
-  --color-card: #223849;
-  --color-border: #2f4759;
-  --color-text: #e9eef2;
-  --color-text-muted: #93a5b3;
-  --color-accent: #f5a623;
-  --color-accent-foreground: #16232e;
-  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --color-bg: #0a1420;
+  --color-bg-elevated: #101d2e;
+  --color-card: #15263b;
+  --color-border: #22384f;
+  --color-text: #f2f5f8;
+  --color-text-muted: #94a7bc;
+  --color-accent: #e83c44;
+  --color-accent-foreground: #ffffff;
+  --font-display: var(--font-poppins), "Poppins", ui-sans-serif, sans-serif;
 }
 
 @theme inline {
@@ -30,7 +38,7 @@
   --color-accent: var(--color-accent);
   --color-accent-foreground: var(--color-accent-foreground);
   --font-display: var(--font-display);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins);
 }
 
 body {
