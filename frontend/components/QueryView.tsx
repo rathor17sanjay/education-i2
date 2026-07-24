@@ -2,8 +2,39 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { streamQuery, type BlocksPayload, type TitlePayload } from "@/lib/api";
+import Image from "next/image";
+import { streamQuery, TENANT_SLUG, type BlocksPayload, type TitlePayload } from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+
+const LOADER_MESSAGES = [
+  `${TENANT_SLUG.toUpperCase()} AI is understanding your query...`,
+  `${TENANT_SLUG.toUpperCase()} AI is checking the details...`,
+  `${TENANT_SLUG.toUpperCase()} AI is crafting your answer...`,
+];
+
+// Advances through `messages` on a fixed interval and holds on the last one
+// -- keeps the Phase-0 loader from sitting on one static line while
+// retrieval runs, without cycling back to "understanding your query" if it
+// takes longer than the message sequence.
+function useRotatingMessage(messages: string[], intervalMs = 2600) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    setIndex(0);
+    const id = setInterval(() => {
+      setIndex((i) => {
+        if (i >= messages.length - 1) {
+          clearInterval(id);
+          return i;
+        }
+        return i + 1;
+      });
+    }, intervalMs);
+    return () => clearInterval(id);
+  }, [messages, intervalMs]);
+
+  return messages[index];
+}
 
 // A single indeterminate progress bar -- no real step-by-step progress
 // exists server-side, so this signals "still working" without faking a
@@ -27,16 +58,24 @@ function ProgressBar({ delay = 0, className = "" }: { delay?: number; className?
 // even arrived -- mirrors Sharda AI's "Understanding your query..." card,
 // which echoes the literal question back so the user knows it registered.
 function UnderstandingQuery({ question }: { question: string }) {
+  const message = useRotatingMessage(LOADER_MESSAGES);
+
   return (
     <div className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-bg-elevated p-8 text-center">
-        <p className="font-display text-lg text-text">GT CampusAI</p>
+        <Image
+          src="/bmu-logo.png"
+          alt="BML Munjal University"
+          width={130}
+          height={50}
+          className="mx-auto"
+        />
         <div className="mt-6 space-y-2">
           <ProgressBar />
           <ProgressBar delay={0.35} className="w-1/2" />
         </div>
-        <p className="mt-6 font-medium text-text">Understanding your query...</p>
-        <p className="mt-2 text-sm text-text-muted">&ldquo;{question}&rdquo;</p>
+        <p className="mt-6 text-lg font-medium text-text">{message}</p>
+        <p className="mt-2 text-base text-text-muted">&ldquo;{question}&rdquo;</p>
       </div>
     </div>
   );
@@ -50,7 +89,7 @@ function GeneratingMoreContent() {
     <div className="mt-8">
       <div className="flex items-center gap-3">
         <ProgressBar className="w-24" />
-        <p className="text-sm text-text-muted">Generating more content...</p>
+        <p className="text-base text-text-muted">Generating more content...</p>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         {[0, 1].map((i) => (
@@ -122,8 +161,8 @@ export default function QueryView({ question }: { question: string }) {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
-      <h1 className="font-display text-4xl md:text-5xl">{title.title}</h1>
-      <p className="mt-2 text-text-muted">{title.subtitle}</p>
+      <h1 className="font-display font-semibold text-4xl md:text-5xl">{title.title}</h1>
+      <p className="mt-2 text-lg text-text-muted">{title.subtitle}</p>
 
       {/* Phase 2 loading: title is up, blocks are still generating. */}
       {!blocks && <GeneratingMoreContent />}
@@ -145,7 +184,7 @@ export default function QueryView({ question }: { question: string }) {
                   key={i}
                   type="button"
                   onClick={() => router.push(`/ai/q/${encodeURIComponent(chip)}`)}
-                  className="rounded-full border border-border bg-card px-4 py-2 text-sm text-text-muted hover:text-text hover:border-accent"
+                  className="rounded-full border border-border bg-card px-4 py-2 text-base text-text-muted hover:text-text hover:border-accent"
                 >
                   {chip}
                 </button>

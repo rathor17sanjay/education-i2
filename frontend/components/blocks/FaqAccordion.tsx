@@ -17,13 +17,13 @@ export default function FaqAccordion({ block }: { block: FaqAccordionBlock }) {
               onClick={() => setOpenIndex(open ? null : i)}
               className="w-full flex items-center justify-between gap-4 px-6 py-4 text-left"
             >
-              <span className="font-medium">{item.question}</span>
-              <span className={`text-accent transition-transform ${open ? "rotate-180" : ""}`}>
+              <span className="text-lg font-medium">{item.question}</span>
+              <span className={`text-accent text-lg transition-transform ${open ? "rotate-180" : ""}`}>
                 ⌄
               </span>
             </button>
             {open && (
-              <p className="px-6 pb-4 text-text-muted leading-relaxed">{item.answer}</p>
+              <p className="px-6 pb-4 text-lg text-text-muted leading-relaxed">{item.answer}</p>
             )}
           </div>
         );
