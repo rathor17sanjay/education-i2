@@ -5,26 +5,62 @@ import { useRouter } from "next/navigation";
 import { streamQuery, type BlocksPayload, type TitlePayload } from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 
-const STATUS_MESSAGES = [
-  "Searching BMU's records...",
-  "Checking official sources...",
-  "Drafting your answer...",
-];
-
-function GeneratingStatus() {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setIndex((i) => Math.min(i + 1, STATUS_MESSAGES.length - 1));
-    }, 1800);
-    return () => clearInterval(id);
-  }, []);
-
+// A single indeterminate progress bar -- no real step-by-step progress
+// exists server-side, so this signals "still working" without faking a
+// completion percentage. `delay` staggers the two Phase-0 bars so they
+// don't sweep in lockstep, matching the Sharda reference.
+function ProgressBar({ delay = 0, className = "" }: { delay?: number; className?: string }) {
   return (
-    <div className="mt-8 space-y-3">
-      <div className="h-32 animate-pulse rounded-xl bg-card" />
-      <p className="text-sm text-text-muted">{STATUS_MESSAGES[index]}</p>
+    <div className={`h-1.5 overflow-hidden rounded-full bg-border ${className}`}>
+      <div
+        className="h-full w-1/3 rounded-full bg-accent"
+        style={{
+          animation: "indeterminate-sweep 1.4s ease-in-out infinite",
+          animationDelay: `${delay}s`,
+        }}
+      />
+    </div>
+  );
+}
+
+// Phase 0: shown the instant a question is submitted, before the title has
+// even arrived -- mirrors Sharda AI's "Understanding your query..." card,
+// which echoes the literal question back so the user knows it registered.
+function UnderstandingQuery({ question }: { question: string }) {
+  return (
+    <div className="flex flex-1 items-center justify-center px-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-bg-elevated p-8 text-center">
+        <p className="font-display text-lg text-text">GT CampusAI</p>
+        <div className="mt-6 space-y-2">
+          <ProgressBar />
+          <ProgressBar delay={0.35} className="w-1/2" />
+        </div>
+        <p className="mt-6 font-medium text-text">Understanding your query...</p>
+        <p className="mt-2 text-sm text-text-muted">&ldquo;{question}&rdquo;</p>
+      </div>
+    </div>
+  );
+}
+
+// Phase 2: title is up, blocks are still generating -- a persistent
+// "Generating more content..." indicator plus skeleton placeholders for the
+// blocks still to come, instead of a bare pulsing box.
+function GeneratingMoreContent() {
+  return (
+    <div className="mt-8">
+      <div className="flex items-center gap-3">
+        <ProgressBar className="w-24" />
+        <p className="text-sm text-text-muted">Generating more content...</p>
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {[0, 1].map((i) => (
+          <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-6">
+            <div className="h-4 w-1/2 rounded bg-border" />
+            <div className="mt-4 h-3 w-full rounded bg-border" />
+            <div className="mt-2 h-3 w-5/6 rounded bg-border" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -78,15 +114,10 @@ export default function QueryView({ question }: { question: string }) {
     );
   }
 
-  // Phase 1 loading: nothing has arrived yet.
+  // Phase 0 loading: nothing has arrived yet -- the question was just
+  // submitted and is being classified/retrieved server-side.
   if (!title) {
-    return (
-      <div className="mx-auto w-full max-w-6xl px-6 py-10 animate-pulse">
-        <div className="h-8 w-2/3 rounded bg-card" />
-        <div className="mt-3 h-4 w-1/2 rounded bg-card" />
-        <div className="mt-8 h-32 rounded-xl bg-card" />
-      </div>
-    );
+    return <UnderstandingQuery question={question} />;
   }
 
   return (
@@ -95,7 +126,7 @@ export default function QueryView({ question }: { question: string }) {
       <p className="mt-2 text-text-muted">{title.subtitle}</p>
 
       {/* Phase 2 loading: title is up, blocks are still generating. */}
-      {!blocks && <GeneratingStatus />}
+      {!blocks && <GeneratingMoreContent />}
 
       {blocks && (
         <div
