@@ -5,16 +5,42 @@ import { useRouter } from "next/navigation";
 import { streamQuery, type BlocksPayload, type TitlePayload } from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 
+const STATUS_MESSAGES = [
+  "Searching BMU's records...",
+  "Checking official sources...",
+  "Drafting your answer...",
+];
+
+function GeneratingStatus() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((i) => Math.min(i + 1, STATUS_MESSAGES.length - 1));
+    }, 1800);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="mt-8 space-y-3">
+      <div className="h-32 animate-pulse rounded-xl bg-card" />
+      <p className="text-sm text-text-muted">{STATUS_MESSAGES[index]}</p>
+    </div>
+  );
+}
+
 export default function QueryView({ question }: { question: string }) {
   const router = useRouter();
   const [title, setTitle] = useState<TitlePayload | null>(null);
   const [blocks, setBlocks] = useState<BlocksPayload | null>(null);
+  const [blocksVisible, setBlocksVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setTitle(null);
     setBlocks(null);
+    setBlocksVisible(false);
     setError(null);
 
     streamQuery(question, {
@@ -22,7 +48,14 @@ export default function QueryView({ question }: { question: string }) {
         if (!cancelled) setTitle(payload);
       },
       onBlocks: (payload) => {
-        if (!cancelled) setBlocks(payload);
+        if (!cancelled) {
+          setBlocks(payload);
+          // Mount at opacity-0 first, then transition in on the next frame
+          // -- gives the blocks a soft fade-in instead of popping in.
+          requestAnimationFrame(() => {
+            if (!cancelled) setBlocksVisible(true);
+          });
+        }
       },
       onError: (message) => {
         if (!cancelled) setError(message);
@@ -62,15 +95,12 @@ export default function QueryView({ question }: { question: string }) {
       <p className="mt-2 text-text-muted">{title.subtitle}</p>
 
       {/* Phase 2 loading: title is up, blocks are still generating. */}
-      {!blocks && (
-        <div className="mt-8 animate-pulse space-y-3">
-          <div className="h-32 rounded-xl bg-card" />
-          <div className="h-4 w-1/3 rounded bg-card" />
-        </div>
-      )}
+      {!blocks && <GeneratingStatus />}
 
       {blocks && (
-        <>
+        <div
+          className={`transition-opacity duration-500 ${blocksVisible ? "opacity-100" : "opacity-0"}`}
+        >
           <div className="mt-8 space-y-6">
             {blocks.blocks.map((block, i) => (
               <BlockRenderer key={i} block={block} />
@@ -91,7 +121,7 @@ export default function QueryView({ question }: { question: string }) {
               ))}
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
