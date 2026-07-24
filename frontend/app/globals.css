@@ -37,3 +37,16 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+/* Indeterminate sweep used by the query-understanding and block-generation
+   progress bars -- we don't have real step-by-step progress from the
+   backend, so this mimics Sharda AI's loading-bar motion without claiming
+   false precision. */
+@keyframes indeterminate-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
