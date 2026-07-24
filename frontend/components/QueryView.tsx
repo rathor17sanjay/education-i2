@@ -12,11 +12,14 @@ const LOADER_MESSAGES = [
   `${TENANT_SLUG.toUpperCase()} AI is crafting your answer...`,
 ];
 
-// Advances through `messages` on a fixed interval and holds on the last one
-// -- keeps the Phase-0 loader from sitting on one static line while
-// retrieval runs, without cycling back to "understanding your query" if it
-// takes longer than the message sequence.
-function useRotatingMessage(messages: string[], intervalMs = 2600) {
+// Advances through `messages` on a fixed interval and holds on the last one.
+// Driven from QueryView (not the individual phase components) so it keeps
+// advancing continuously across the Phase-0 -> Phase-2 handoff instead of
+// resetting -- title typically arrives in ~1.5-2s, faster than a single
+// interval tick, so confining the rotation to Phase 0 alone meant it never
+// got past the first message before Phase 2's separate static text took
+// over. `resetKey` (the question) restarts the sequence for a new query.
+function useRotatingMessage(messages: string[], resetKey: string, intervalMs = 3200) {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
@@ -31,7 +34,7 @@ function useRotatingMessage(messages: string[], intervalMs = 2600) {
       });
     }, intervalMs);
     return () => clearInterval(id);
-  }, [messages, intervalMs]);
+  }, [messages, resetKey, intervalMs]);
 
   return messages[index];
 }
@@ -57,9 +60,7 @@ function ProgressBar({ delay = 0, className = "" }: { delay?: number; className?
 // Phase 0: shown the instant a question is submitted, before the title has
 // even arrived -- mirrors Sharda AI's "Understanding your query..." card,
 // which echoes the literal question back so the user knows it registered.
-function UnderstandingQuery({ question }: { question: string }) {
-  const message = useRotatingMessage(LOADER_MESSAGES);
-
+function UnderstandingQuery({ question, message }: { question: string; message: string }) {
   return (
     <div className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-bg-elevated p-8 text-center">
@@ -81,15 +82,15 @@ function UnderstandingQuery({ question }: { question: string }) {
   );
 }
 
-// Phase 2: title is up, blocks are still generating -- a persistent
-// "Generating more content..." indicator plus skeleton placeholders for the
-// blocks still to come, instead of a bare pulsing box.
-function GeneratingMoreContent() {
+// Phase 2: title is up, blocks are still generating -- continues the same
+// rotating status message from Phase 0 (rather than switching to a separate
+// static line) plus skeleton placeholders for the blocks still to come.
+function GeneratingMoreContent({ message }: { message: string }) {
   return (
     <div className="mt-8">
       <div className="flex items-center gap-3">
         <ProgressBar className="w-24" />
-        <p className="text-base text-text-muted">Generating more content...</p>
+        <p className="text-base text-text-muted">{message}</p>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
         {[0, 1].map((i) => (
@@ -110,6 +111,7 @@ export default function QueryView({ question }: { question: string }) {
   const [blocks, setBlocks] = useState<BlocksPayload | null>(null);
   const [blocksVisible, setBlocksVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loaderMessage = useRotatingMessage(LOADER_MESSAGES, question);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,7 +158,7 @@ export default function QueryView({ question }: { question: string }) {
   // Phase 0 loading: nothing has arrived yet -- the question was just
   // submitted and is being classified/retrieved server-side.
   if (!title) {
-    return <UnderstandingQuery question={question} />;
+    return <UnderstandingQuery question={question} message={loaderMessage} />;
   }
 
   return (
@@ -165,7 +167,7 @@ export default function QueryView({ question }: { question: string }) {
       <p className="mt-2 text-lg text-text-muted">{title.subtitle}</p>
 
       {/* Phase 2 loading: title is up, blocks are still generating. */}
-      {!blocks && <GeneratingMoreContent />}
+      {!blocks && <GeneratingMoreContent message={loaderMessage} />}
 
       {blocks && (
         <div
