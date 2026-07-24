@@ -14,7 +14,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-      <h1 className="font-display text-4xl md:text-5xl">
+      <h1 className="font-display text-5xl md:text-6xl">
         Ask me anything about BML Munjal University
       </h1>
       <p className="mt-3 max-w-xl text-text-muted">
