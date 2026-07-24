@@ -1,0 +1,24 @@
+# secrets
+.env
+.env.local
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# node / next.js
+node_modules/
+.next/
+out/
+.vercel/
+
+# misc
+.DS_Store
+*.log
+
+# fetched/derived sample data (large, includes third-party copyrighted
+# brochures/reports scraped from bmu.edu.in -- reproducible via the
+# ingestion scripts + documented source URLs, not meant to be versioned)
+backend/samples/

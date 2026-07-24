@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/*
+ * Per-tenant theme, delivered as CSS custom properties (CLAUDE.md's decided
+ * theming approach). Phase 0 hardcodes BMU's palette here since there's
+ * only one pilot tenant and no backend theme-delivery endpoint yet -- when
+ * that lands, these become the fallback defaults, not the only source.
+ * Components never reference hex values directly, only these vars (via the
+ * Tailwind tokens mapped below).
+ */
+:root {
+  --color-bg: #16232e;
+  --color-bg-elevated: #1d2f3d;
+  --color-card: #223849;
+  --color-border: #2f4759;
+  --color-text: #e9eef2;
+  --color-text-muted: #93a5b3;
+  --color-accent: #f5a623;
+  --color-accent-foreground: #16232e;
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-card: var(--color-card);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-geist-sans);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
