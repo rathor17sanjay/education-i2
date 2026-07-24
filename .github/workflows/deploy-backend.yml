@@ -1,0 +1,32 @@
+name: Deploy backend to Droplet
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "docker-compose.yml"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+
+      # deploy.sh on the server (see backend/../deploy.sh) untars this stream
+      # and runs `docker compose up -d --build`. The deploy key on the
+      # server side is a forced-command key restricted to only running
+      # deploy.sh -- it has no shell access even if this secret leaks.
+      - name: Deploy
+        run: |
+          tar --exclude='backend/.venv' --exclude='__pycache__' --exclude='.pytest_cache' --exclude='backend/samples' -czf - backend docker-compose.yml | \
+          ssh -i ~/.ssh/deploy_key root@${{ secrets.DEPLOY_HOST }}
