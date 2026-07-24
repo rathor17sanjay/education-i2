@@ -64,6 +64,14 @@ def _sse_event(event: str, data: dict) -> str:
 
 
 def _stream_events(tenant_slug: str, question: str, top_k: int):
+    # Chrome's fetch()/ReadableStream buffers small streamed responses
+    # internally and won't flush anything to JS until enough bytes have
+    # accumulated -- our title event alone (~200 bytes) is well under that
+    # threshold, so it silently gets held back and delivered together with
+    # the much-later blocks event, hiding the progressive-loading UX.
+    # Padding the very first message past ~2KB forces an immediate flush.
+    yield ":" + " " * 2048 + "\n\n"
+
     t0 = time.monotonic()
     try:
         for phase, payload in answer_stream(tenant_slug, question, top_k=top_k):
