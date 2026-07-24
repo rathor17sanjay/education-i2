@@ -15,6 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from db import get_tenant_by_slug
+from rag.cache import get_recent_questions
 from rag.query import answer, answer_stream
 
 app = FastAPI(title="GT CampusAI Query API")
@@ -38,6 +40,15 @@ class QueryRequest(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/{tenant_slug}/popular-questions")
+def popular_questions(tenant_slug: str, limit: int = 4):
+    try:
+        tenant_id, _ = get_tenant_by_slug(tenant_slug)
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"unknown tenant: {tenant_slug}")
+    return {"questions": get_recent_questions(tenant_id, limit=limit)}
 
 
 @app.post("/api/{tenant_slug}/query")

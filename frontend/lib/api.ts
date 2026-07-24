@@ -10,6 +10,22 @@ export type BlocksPayload = {
   grounded: boolean;
 };
 
+/** Real recently-asked questions, for homepage starter chips. Falls back to
+ * an empty list (caller supplies a hardcoded fallback) rather than
+ * throwing -- a fresh tenant with an empty cache shouldn't break the page. */
+export async function fetchPopularQuestions(limit = 4): Promise<string[]> {
+  try {
+    const res = await fetch(`/api/${TENANT_SLUG}/popular-questions?limit=${limit}`, {
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.questions ?? [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Two-phase streaming query: calls onTitle as soon as the fast title/subtitle
  * phase completes, then onBlocks once the fuller answer is ready -- mirrors
