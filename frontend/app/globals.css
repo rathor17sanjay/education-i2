@@ -25,7 +25,30 @@
   --color-text-muted: #94a7bc;
   --color-accent: #e83c44;
   --color-accent-foreground: #ffffff;
+  --color-secondary: #0d4d96;
+  --color-secondary-foreground: #ffffff;
   --font-display: var(--font-poppins), "Poppins", ui-sans-serif, sans-serif;
+}
+
+/*
+ * Superadmin platform theme -- deliberately NOT BMU's brand. This is the
+ * platform operator's own identity (indigo), used for the admin dashboard
+ * shell regardless of which tenant is being managed. Applied via
+ * html[data-theme="admin"] on the (platform) route group's separate root
+ * layout, overriding the same custom-property names above so admin
+ * components can reuse the identical bg, text, border, and accent
+ * Tailwind utility classes as the student-facing UI, just resolving to a
+ * different palette -- no second design system.
+ */
+html[data-theme="admin"] {
+  --color-bg: #16151f;
+  --color-bg-elevated: #1e1c2e;
+  --color-card: #1e1c2e;
+  --color-border: #322f47;
+  --color-text: #f0eefc;
+  --color-text-muted: #a29bc2;
+  --color-accent: #534ab7;
+  --color-accent-foreground: #ffffff;
 }
 
 @theme inline {
@@ -37,6 +60,8 @@
   --color-text-muted: var(--color-text-muted);
   --color-accent: var(--color-accent);
   --color-accent-foreground: var(--color-accent-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
   --font-display: var(--font-display);
   --font-sans: var(--font-poppins);
 }

@@ -6,11 +6,19 @@ flipbook-style exports with zero embedded text, but the multi-page
 prospectuses/newsletters have a normal text layer.
 """
 
+import os
+
 import pytesseract
 import pdfplumber
 import pypdfium2 as pdfium
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# Windows dev needs an explicit path (Tesseract isn't on PATH by default);
+# the Droplet's Dockerfile installs the tesseract-ocr apt package, which
+# puts it on PATH, so this stays unset there and pytesseract finds it
+# automatically.
+_tesseract_cmd = os.environ.get("TESSERACT_CMD")
+if _tesseract_cmd:
+    pytesseract.pytesseract.tesseract_cmd = _tesseract_cmd
 
 FLIPBOOK_HEIGHT_THRESHOLD = 2000  # pt; a single "page" this tall is a rendered flipbook canvas
 MIN_CHARS_PER_PAGE = 100  # below this, treat the page as image-only

@@ -22,3 +22,6 @@ out/
 # brochures/reports scraped from bmu.edu.in -- reproducible via the
 # ingestion scripts + documented source URLs, not meant to be versioned)
 backend/samples/
+
+# uploaded tenant assets (local-disk interim storage, see docker-compose.yml)
+backend/uploads/

@@ -10,6 +10,58 @@ export type BlocksPayload = {
   grounded: boolean;
 };
 
+export type TenantTheme = {
+  logo_url: string | null;
+  icon_url: string | null;
+  brand_name: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  gtm_id: string | null;
+};
+
+/** Branding a superadmin set for this tenant (api/superadmin.py's theme
+ * jsonb fields), fetched by slug. Falls back to an all-null theme (callers
+ * fall back to the static defaults already baked into globals.css/public/)
+ * rather than throwing -- a tenant with nothing configured yet, or a
+ * network hiccup, shouldn't break the page. */
+const _EMPTY_THEME: TenantTheme = {
+  logo_url: null,
+  icon_url: null,
+  brand_name: null,
+  primary_color: null,
+  secondary_color: null,
+  gtm_id: null,
+};
+
+/** Client-side (browser) fetch -- relative path, covered by the /api/:path*
+ * rewrite in next.config.ts. Used from Client Components like QueryView. */
+export async function fetchTenantTheme(): Promise<TenantTheme> {
+  try {
+    const res = await fetch(`/api/${TENANT_SLUG}/theme`, { cache: "no-store" });
+    if (!res.ok) return _EMPTY_THEME;
+    return await res.json();
+  } catch {
+    return _EMPTY_THEME;
+  }
+}
+
+/** Server-side (Server Component) fetch -- there's no browser/current-origin
+ * context during SSR for a relative URL to resolve against, so this calls
+ * the backend directly (server-to-server, not subject to the mixed-content
+ * restriction the rewrite exists for). Used once in the root layout so the
+ * theme is baked into the initial HTML instead of flashing in after a
+ * client-side fetch. */
+export async function fetchTenantThemeServer(): Promise<TenantTheme> {
+  const backendUrl = process.env.API_PROXY_TARGET ?? "http://159.223.72.11:8000";
+  try {
+    const res = await fetch(`${backendUrl}/api/${TENANT_SLUG}/theme`, { cache: "no-store" });
+    if (!res.ok) return _EMPTY_THEME;
+    return await res.json();
+  } catch {
+    return _EMPTY_THEME;
+  }
+}
+
 /** Real recently-asked questions, for homepage starter chips. Falls back to
  * an empty list (caller supplies a hardcoded fallback) rather than
  * throwing -- a fresh tenant with an empty cache shouldn't break the page. */

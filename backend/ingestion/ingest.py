@@ -22,7 +22,7 @@ def build_document_text(qa_pairs: list[dict]) -> str:
     return "\n\n".join(f"Q: {p['question']}\nA: {p['answer']}" for p in qa_pairs)
 
 
-def _store_document(
+def store_document(
     tenant_id: str,
     *,
     title: str,
@@ -31,13 +31,17 @@ def _store_document(
     content_type: str,
     chunk_texts: list[str],
     auto_approve: bool,
-) -> None:
+    source_type: str = "website_crawl",
+) -> str | None:
     """Upsert one document + its chunks, keyed by source_url for diff detection.
 
-    Shared by both the FAQ ingestion path (chunk_texts from faq_chunks) and
-    the generic page path (chunk_texts from token_window_chunks) -- the
-    document/chunk storage logic is identical either way, only the chunker
-    differs.
+    Shared by every ingestion path -- FAQ (chunk_texts from faq_chunks), the
+    generic page path (chunk_texts from token_window_chunks), and admin
+    uploads (chunk_texts from token_window_chunks over extracted PDF/docx/
+    pptx text) -- the document/chunk storage logic is identical either way,
+    only the chunker/source differs. Returns the document id, or None if the
+    content was unchanged and nothing was written (existing callers don't
+    need the id; the admin upload job does, to record it on ingestion_jobs).
     """
     content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
 
@@ -53,7 +57,7 @@ def _store_document(
 
         if existing and existing[1] == content_hash:
             print(f"unchanged, skipping: {source_url}")
-            return
+            return None
 
         status = "approved" if auto_approve else "staged"
         metadata = json.dumps({"source_url": source_url})
@@ -77,10 +81,10 @@ def _store_document(
                 insert into documents
                     (tenant_id, source_type, content_type, title, content,
                      content_hash, status, metadata)
-                values (%s, 'website_crawl', %s, %s, %s, %s, %s, %s)
+                values (%s, %s, %s, %s, %s, %s, %s, %s)
                 returning id
                 """,
-                (tenant_id, content_type, title, content, content_hash, status, metadata),
+                (tenant_id, source_type, content_type, title, content, content_hash, status, metadata),
             )
             document_id = cur.fetchone()[0]
             print(f"document created: {document_id} ({source_url})")
@@ -97,6 +101,7 @@ def _store_document(
                 (tenant_id, document_id, idx, text, count_tokens(text), vector_literal),
             )
         print(f"  embedded {len(chunk_texts)} chunks")
+        return str(document_id)
 
 
 def ingest(sample_path: Path, auto_approve: bool = True) -> None:
@@ -107,7 +112,7 @@ def ingest(sample_path: Path, auto_approve: bool = True) -> None:
     print(f"tenant: {data['tenant_name']} ({tenant_id})")
 
     document_text = build_document_text(data["qa_pairs"])
-    _store_document(
+    store_document(
         tenant_id,
         title=data["title"],
         source_url=data["source_url"],
@@ -127,7 +132,7 @@ def ingest_pages(sample_path: Path, auto_approve: bool = True) -> None:
     print(f"tenant: {data['tenant_name']} ({tenant_id})")
 
     for page in data["pages"]:
-        _store_document(
+        store_document(
             tenant_id,
             title=page["title"],
             source_url=page["source_url"],

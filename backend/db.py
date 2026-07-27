@@ -58,6 +58,27 @@ def tenant_connection(tenant_id: str | None = None, *, restricted: bool = False)
         pool.putconn(conn)
 
 
+class TenantAlreadyExists(Exception):
+    pass
+
+
+def create_tenant(slug: str, name: str) -> str:
+    """Explicit admin "create tenant" action -- unlike get_or_create_tenant
+    (used by ingestion scripts, where "already exists" is a harmless no-op),
+    a superadmin creating a tenant with a slug that's already taken is a
+    real conflict, not something to silently paper over."""
+    with tenant_connection() as (conn, cur):
+        cur.execute("select id from tenants where slug = %s", (slug,))
+        if cur.fetchone():
+            raise TenantAlreadyExists(slug)
+
+        cur.execute(
+            "insert into tenants (slug, name) values (%s, %s) returning id",
+            (slug, name),
+        )
+        return str(cur.fetchone()[0])
+
+
 def get_or_create_tenant(slug: str, name: str) -> str:
     """Tenant provisioning runs with no app.tenant_id set, via the
     privileged `postgres` connection -- admin/ingestion operations are

@@ -39,10 +39,16 @@ function useTypewriter(phrase: string) {
 
 // Sticky, always visible regardless of page content -- the Apply Now CTA
 // is never buried (per CLAUDE.md's Sharda-benchmark page template).
-export default function Footer() {
+export default function Footer({
+  iconUrl,
+  brandName,
+}: {
+  iconUrl?: string | null;
+  brandName?: string | null;
+}) {
   const router = useRouter();
   const [value, setValue] = useState("");
-  const typed = useTypewriter(`Ask ${TENANT_SLUG.toUpperCase()} AI`);
+  const typed = useTypewriter(`Ask ${brandName || TENANT_SLUG.toUpperCase()} AI`);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,10 +63,11 @@ export default function Footer() {
       <form onSubmit={submit} className="mx-auto flex max-w-6xl gap-3">
         <div className="relative flex-1">
           <Image
-            src="/bmu-icon.png"
+            src={iconUrl || "/bmu-icon.png"}
             alt=""
             width={24}
             height={24}
+            unoptimized={!!iconUrl}
             className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 rounded-full"
           />
           <input
@@ -72,7 +79,7 @@ export default function Footer() {
         </div>
         <button
           type="submit"
-          className="rounded-full bg-card px-5 py-3 text-base text-text-muted hover:text-text border border-border"
+          className="rounded-full bg-secondary px-5 py-3 text-base text-secondary-foreground hover:opacity-90"
         >
           ➤
         </button>

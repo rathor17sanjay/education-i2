@@ -3,14 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { streamQuery, TENANT_SLUG, type BlocksPayload, type TitlePayload } from "@/lib/api";
+import {
+  streamQuery,
+  fetchTenantTheme,
+  TENANT_SLUG,
+  type BlocksPayload,
+  type TitlePayload,
+} from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 
-const LOADER_MESSAGES = [
-  `${TENANT_SLUG.toUpperCase()} AI is understanding your query...`,
-  `${TENANT_SLUG.toUpperCase()} AI is checking the details...`,
-  `${TENANT_SLUG.toUpperCase()} AI is crafting your answer...`,
-];
+function loaderMessages(brandName: string) {
+  return [
+    `${brandName} AI is understanding your query...`,
+    `${brandName} AI is checking the details...`,
+    `${brandName} AI is crafting your answer...`,
+  ];
+}
 
 // Advances through `messages` on a fixed interval and holds on the last one.
 // Driven from QueryView (not the individual phase components) so it keeps
@@ -60,15 +68,24 @@ function ProgressBar({ delay = 0, className = "" }: { delay?: number; className?
 // Phase 0: shown the instant a question is submitted, before the title has
 // even arrived -- mirrors Sharda AI's "Understanding your query..." card,
 // which echoes the literal question back so the user knows it registered.
-function UnderstandingQuery({ question, message }: { question: string; message: string }) {
+function UnderstandingQuery({
+  question,
+  message,
+  logoUrl,
+}: {
+  question: string;
+  message: string;
+  logoUrl?: string | null;
+}) {
   return (
     <div className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-bg-elevated p-8 text-center">
         <Image
-          src="/bmu-logo.png"
-          alt="BML Munjal University"
+          src={logoUrl || "/bmu-logo.png"}
+          alt="University logo"
           width={130}
           height={50}
+          unoptimized={!!logoUrl}
           className="mx-auto"
         />
         <div className="mt-6 space-y-2">
@@ -111,7 +128,24 @@ export default function QueryView({ question }: { question: string }) {
   const [blocks, setBlocks] = useState<BlocksPayload | null>(null);
   const [blocksVisible, setBlocksVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const loaderMessage = useRotatingMessage(LOADER_MESSAGES, question);
+  const [theme, setTheme] = useState<{ logo_url: string | null; brand_name: string | null }>({
+    logo_url: null,
+    brand_name: null,
+  });
+  const loaderMessage = useRotatingMessage(
+    loaderMessages(theme.brand_name || TENANT_SLUG.toUpperCase()),
+    question,
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchTenantTheme().then((t) => {
+      if (!cancelled) setTheme({ logo_url: t.logo_url, brand_name: t.brand_name });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,7 +192,7 @@ export default function QueryView({ question }: { question: string }) {
   // Phase 0 loading: nothing has arrived yet -- the question was just
   // submitted and is being classified/retrieved server-side.
   if (!title) {
-    return <UnderstandingQuery question={question} message={loaderMessage} />;
+    return <UnderstandingQuery question={question} message={loaderMessage} logoUrl={theme.logo_url} />;
   }
 
   return (

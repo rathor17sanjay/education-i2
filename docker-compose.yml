@@ -6,3 +6,13 @@ services:
     env_file:
       - ./backend/.env
     restart: unless-stopped
+    volumes:
+      # Uploaded tenant logos/icons -- a named volume so they survive
+      # `docker compose up -d --build` on every deploy (container churn
+      # would otherwise wipe anything written to the container's own
+      # filesystem). Plan is to move this to S3 later; this is the interim
+      # local-disk store.
+      - uploads_data:/app/uploads
+
+volumes:
+  uploads_data:

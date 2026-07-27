@@ -15,6 +15,13 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         destination: `${API_PROXY_TARGET}/api/:path*`,
       },
+      {
+        // Uploaded tenant logos/icons, served by the backend's StaticFiles
+        // mount -- same rewrite pattern as /api/*, needed so the header
+        // logo and search-box icon don't hit mixed-content blocking.
+        source: "/uploads/:path*",
+        destination: `${API_PROXY_TARGET}/uploads/:path*`,
+      },
     ];
   },
 };
