@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -151,10 +151,16 @@ export default function QueryView({ question }: { question: string }) {
     brand_name: null,
     loader_messages: null,
   });
-  const loaderMessage = useRotatingMessage(
-    loaderMessages(theme.brand_name || TENANT_SLUG.toUpperCase(), theme.loader_messages),
-    question,
+  // Memoized so the array reference only changes when the actual inputs do
+  // -- useRotatingMessage's effect depends on this array and resets its
+  // rotation to message 0 whenever it sees a new reference, so recomputing
+  // it fresh on every render (e.g. each streaming update) would reset the
+  // rotation before it ever advances, making it look stuck.
+  const messages = useMemo(
+    () => loaderMessages(theme.brand_name || TENANT_SLUG.toUpperCase(), theme.loader_messages),
+    [theme.brand_name, theme.loader_messages],
   );
+  const loaderMessage = useRotatingMessage(messages, question);
 
   useEffect(() => {
     let cancelled = false;
