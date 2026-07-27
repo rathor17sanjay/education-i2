@@ -80,6 +80,8 @@ def theme(tenant_slug: str):
             "primary_color": t.get("primary_color"),
             "secondary_color": t.get("secondary_color"),
             "gtm_id": t.get("gtm_id"),
+            "headline": t.get("headline"),
+            "subheadline": t.get("subheadline"),
         }
 
 

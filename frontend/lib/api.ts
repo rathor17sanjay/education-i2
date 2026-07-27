@@ -17,6 +17,8 @@ export type TenantTheme = {
   primary_color: string | null;
   secondary_color: string | null;
   gtm_id: string | null;
+  headline: string | null;
+  subheadline: string | null;
 };
 
 /** Branding a superadmin set for this tenant (api/superadmin.py's theme
@@ -31,6 +33,8 @@ const _EMPTY_THEME: TenantTheme = {
   primary_color: null,
   secondary_color: null,
   gtm_id: null,
+  headline: null,
+  subheadline: null,
 };
 
 /** Client-side (browser) fetch -- relative path, covered by the /api/:path*

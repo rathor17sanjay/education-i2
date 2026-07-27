@@ -94,7 +94,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             />
           </noscript>
         )}
-        <Header logoUrl={theme.logo_url} />
+        <Header logoUrl={theme.logo_url} brandName={theme.brand_name} />
         <main className="flex-1 flex flex-col overflow-y-auto pb-40">
           {children}
         </main>

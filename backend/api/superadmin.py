@@ -27,6 +27,7 @@ router = APIRouter()
 # need to know about the storage detail.
 _THEME_FIELDS = {
     "logo_url", "icon_url", "brand_name", "primary_color", "secondary_color", "gtm_id",
+    "headline", "subheadline",
 }
 # AEO/GEO fields (short answer, FAQs, sources, AI summary, etc.) were dropped
 # from here -- those describe one specific generated page, not a whole
@@ -61,6 +62,8 @@ class Tenant(BaseModel):
     primary_color: str | None = None
     secondary_color: str | None = None
     gtm_id: str | None = None
+    headline: str | None = None
+    subheadline: str | None = None
     # SEO
     seo_title: str | None = None
     meta_description: str | None = None
@@ -92,6 +95,8 @@ class UpdateTenantRequest(BaseModel):
     primary_color: str | None = None
     secondary_color: str | None = None
     gtm_id: str | None = None
+    headline: str | None = None
+    subheadline: str | None = None
     seo_title: str | None = None
     meta_description: str | None = None
     canonical_url: str | None = None
@@ -117,6 +122,8 @@ def _tenant_from_row(row) -> Tenant:
         primary_color=theme.get("primary_color"),
         secondary_color=theme.get("secondary_color"),
         gtm_id=theme.get("gtm_id"),
+        headline=theme.get("headline"),
+        subheadline=theme.get("subheadline"),
         **{field: seo.get(field) for field in _SEO_FIELDS},
     )
 

@@ -69,6 +69,8 @@ type Tenant = {
   primary_color: string | null;
   secondary_color: string | null;
   gtm_id: string | null;
+  headline: string | null;
+  subheadline: string | null;
 } & Partial<Record<SeoFieldKey, string | null>>;
 
 const SLUG_EDITABLE_STATUSES = ["trial"];
@@ -209,6 +211,8 @@ export default function TenantsPage() {
   const [editPrimaryColor, setEditPrimaryColor] = useState("");
   const [editSecondaryColor, setEditSecondaryColor] = useState("");
   const [editGtmId, setEditGtmId] = useState("");
+  const [editHeadline, setEditHeadline] = useState("");
+  const [editSubheadline, setEditSubheadline] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [seoTenant, setSeoTenant] = useState<Tenant | null>(null);
@@ -269,6 +273,8 @@ export default function TenantsPage() {
     setEditPrimaryColor(t.primary_color ?? "");
     setEditSecondaryColor(t.secondary_color ?? "");
     setEditGtmId(t.gtm_id ?? "");
+    setEditHeadline(t.headline ?? "");
+    setEditSubheadline(t.subheadline ?? "");
   }
 
   async function uploadAsset(kind: "logo" | "icon", file: File) {
@@ -313,6 +319,8 @@ export default function TenantsPage() {
         primary_color: editPrimaryColor || null,
         secondary_color: editSecondaryColor || null,
         gtm_id: editGtmId || null,
+        headline: editHeadline || null,
+        subheadline: editSubheadline || null,
       }),
     });
 
@@ -566,6 +574,32 @@ export default function TenantsPage() {
                   placeholder="UNIVERSITY"
                   value={editBrandName}
                   onChange={(e) => setEditBrandName(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-headline">
+                  Homepage headline{" "}
+                  <span className="text-muted-foreground">
+                    (defaults to &ldquo;Shape Your Future at {"{Brand name}"}&rdquo; if left blank)
+                  </span>
+                </Label>
+                <Input
+                  id="edit-headline"
+                  placeholder="Shape Your Future at UNIVERSITY"
+                  value={editHeadline}
+                  onChange={(e) => setEditHeadline(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-subheadline">Homepage subheadline</Label>
+                <Textarea
+                  id="edit-subheadline"
+                  rows={2}
+                  placeholder="Your AI Admissions Counsellor -- answers grounded only in UNIVERSITY's official information."
+                  value={editSubheadline}
+                  onChange={(e) => setEditSubheadline(e.target.value)}
                 />
               </div>
 

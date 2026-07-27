@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TENANT_SLUG } from "@/lib/api";
+import BrandAvatar from "./BrandAvatar";
 
 // Types the phrase out, pauses, deletes it, pauses, and repeats -- used to
 // animate the search input's placeholder instead of a static string.
@@ -62,14 +63,13 @@ export default function Footer({
     <footer className="sticky bottom-0 z-10 border-t border-border bg-bg px-6 py-4">
       <form onSubmit={submit} className="mx-auto flex max-w-6xl gap-3">
         <div className="relative flex-1">
-          <Image
-            src={iconUrl || "/bmu-icon.png"}
-            alt=""
-            width={24}
-            height={24}
-            unoptimized={!!iconUrl}
-            className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 rounded-full"
-          />
+          <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
+            {iconUrl ? (
+              <Image src={iconUrl} alt="" width={24} height={24} unoptimized className="rounded-full" />
+            ) : (
+              <BrandAvatar brandName={brandName || TENANT_SLUG} size={24} />
+            )}
+          </div>
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}

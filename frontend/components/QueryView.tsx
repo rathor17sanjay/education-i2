@@ -11,6 +11,7 @@ import {
   type TitlePayload,
 } from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
+import BrandAvatar from "@/components/BrandAvatar";
 
 function loaderMessages(brandName: string) {
   return [
@@ -72,22 +73,28 @@ function UnderstandingQuery({
   question,
   message,
   logoUrl,
+  brandName,
 }: {
   question: string;
   message: string;
   logoUrl?: string | null;
+  brandName: string;
 }) {
   return (
     <div className="flex flex-1 items-center justify-center px-6">
       <div className="w-full max-w-md rounded-2xl border border-border bg-bg-elevated p-8 text-center">
-        <Image
-          src={logoUrl || "/bmu-logo.png"}
-          alt="University logo"
-          width={130}
-          height={50}
-          unoptimized={!!logoUrl}
-          className="mx-auto"
-        />
+        {logoUrl ? (
+          <Image
+            src={logoUrl}
+            alt="University logo"
+            width={130}
+            height={50}
+            unoptimized
+            className="mx-auto"
+          />
+        ) : (
+          <BrandAvatar brandName={brandName} size={56} className="mx-auto" />
+        )}
         <div className="mt-6 space-y-2">
           <ProgressBar />
           <ProgressBar delay={0.35} className="w-1/2" />
@@ -192,7 +199,14 @@ export default function QueryView({ question }: { question: string }) {
   // Phase 0 loading: nothing has arrived yet -- the question was just
   // submitted and is being classified/retrieved server-side.
   if (!title) {
-    return <UnderstandingQuery question={question} message={loaderMessage} logoUrl={theme.logo_url} />;
+    return (
+      <UnderstandingQuery
+        question={question}
+        message={loaderMessage}
+        logoUrl={theme.logo_url}
+        brandName={theme.brand_name || TENANT_SLUG.toUpperCase()}
+      />
+    );
   }
 
   return (
