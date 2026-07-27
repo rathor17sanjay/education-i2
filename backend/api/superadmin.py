@@ -27,7 +27,7 @@ router = APIRouter()
 # need to know about the storage detail.
 _THEME_FIELDS = {
     "logo_url", "icon_url", "brand_name", "primary_color", "secondary_color", "gtm_id",
-    "headline", "subheadline",
+    "headline", "subheadline", "loader_messages",
 }
 # AEO/GEO fields (short answer, FAQs, sources, AI summary, etc.) were dropped
 # from here -- those describe one specific generated page, not a whole
@@ -64,6 +64,7 @@ class Tenant(BaseModel):
     gtm_id: str | None = None
     headline: str | None = None
     subheadline: str | None = None
+    loader_messages: str | None = None
     # SEO
     seo_title: str | None = None
     meta_description: str | None = None
@@ -97,6 +98,7 @@ class UpdateTenantRequest(BaseModel):
     gtm_id: str | None = None
     headline: str | None = None
     subheadline: str | None = None
+    loader_messages: str | None = None
     seo_title: str | None = None
     meta_description: str | None = None
     canonical_url: str | None = None
@@ -124,6 +126,7 @@ def _tenant_from_row(row) -> Tenant:
         gtm_id=theme.get("gtm_id"),
         headline=theme.get("headline"),
         subheadline=theme.get("subheadline"),
+        loader_messages=theme.get("loader_messages"),
         **{field: seo.get(field) for field in _SEO_FIELDS},
     )
 

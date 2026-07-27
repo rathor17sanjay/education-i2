@@ -82,6 +82,7 @@ def theme(tenant_slug: str):
             "gtm_id": t.get("gtm_id"),
             "headline": t.get("headline"),
             "subheadline": t.get("subheadline"),
+            "loader_messages": t.get("loader_messages"),
         }
 
 

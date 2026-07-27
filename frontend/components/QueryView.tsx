@@ -13,7 +13,14 @@ import {
 import BlockRenderer from "@/components/blocks/BlockRenderer";
 import BrandAvatar from "@/components/BrandAvatar";
 
-function loaderMessages(brandName: string) {
+// Tenant-customizable via superadmin's "Loader messages" field (one per
+// line); falls back to the auto-generated "{brand} AI is..." sequence when
+// unset, same as before this was configurable.
+function loaderMessages(brandName: string, custom: string | null) {
+  if (custom) {
+    const lines = custom.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length > 0) return lines;
+  }
   return [
     `${brandName} AI is understanding your query...`,
     `${brandName} AI is checking the details...`,
@@ -135,19 +142,29 @@ export default function QueryView({ question }: { question: string }) {
   const [blocks, setBlocks] = useState<BlocksPayload | null>(null);
   const [blocksVisible, setBlocksVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<{ logo_url: string | null; brand_name: string | null }>({
+  const [theme, setTheme] = useState<{
+    logo_url: string | null;
+    brand_name: string | null;
+    loader_messages: string | null;
+  }>({
     logo_url: null,
     brand_name: null,
+    loader_messages: null,
   });
   const loaderMessage = useRotatingMessage(
-    loaderMessages(theme.brand_name || TENANT_SLUG.toUpperCase()),
+    loaderMessages(theme.brand_name || TENANT_SLUG.toUpperCase(), theme.loader_messages),
     question,
   );
 
   useEffect(() => {
     let cancelled = false;
     fetchTenantTheme().then((t) => {
-      if (!cancelled) setTheme({ logo_url: t.logo_url, brand_name: t.brand_name });
+      if (!cancelled)
+        setTheme({
+          logo_url: t.logo_url,
+          brand_name: t.brand_name,
+          loader_messages: t.loader_messages,
+        });
     });
     return () => {
       cancelled = true;

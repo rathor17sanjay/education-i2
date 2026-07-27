@@ -19,6 +19,7 @@ export type TenantTheme = {
   gtm_id: string | null;
   headline: string | null;
   subheadline: string | null;
+  loader_messages: string | null;
 };
 
 /** Branding a superadmin set for this tenant (api/superadmin.py's theme
@@ -35,6 +36,7 @@ const _EMPTY_THEME: TenantTheme = {
   gtm_id: null,
   headline: null,
   subheadline: null,
+  loader_messages: null,
 };
 
 /** Client-side (browser) fetch -- relative path, covered by the /api/:path*

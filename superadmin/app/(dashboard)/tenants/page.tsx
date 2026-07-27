@@ -71,6 +71,7 @@ type Tenant = {
   gtm_id: string | null;
   headline: string | null;
   subheadline: string | null;
+  loader_messages: string | null;
 } & Partial<Record<SeoFieldKey, string | null>>;
 
 const SLUG_EDITABLE_STATUSES = ["trial"];
@@ -213,6 +214,7 @@ export default function TenantsPage() {
   const [editGtmId, setEditGtmId] = useState("");
   const [editHeadline, setEditHeadline] = useState("");
   const [editSubheadline, setEditSubheadline] = useState("");
+  const [editLoaderMessages, setEditLoaderMessages] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [seoTenant, setSeoTenant] = useState<Tenant | null>(null);
@@ -275,6 +277,7 @@ export default function TenantsPage() {
     setEditGtmId(t.gtm_id ?? "");
     setEditHeadline(t.headline ?? "");
     setEditSubheadline(t.subheadline ?? "");
+    setEditLoaderMessages(t.loader_messages ?? "");
   }
 
   async function uploadAsset(kind: "logo" | "icon", file: File) {
@@ -321,6 +324,7 @@ export default function TenantsPage() {
         gtm_id: editGtmId || null,
         headline: editHeadline || null,
         subheadline: editSubheadline || null,
+        loader_messages: editLoaderMessages || null,
       }),
     });
 
@@ -600,6 +604,25 @@ export default function TenantsPage() {
                   placeholder="Your AI Admissions Counsellor -- answers grounded only in UNIVERSITY's official information."
                   value={editSubheadline}
                   onChange={(e) => setEditSubheadline(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-loader-messages">
+                  Loader messages{" "}
+                  <span className="text-muted-foreground">
+                    (one per line, shown while an answer is generating -- defaults to &ldquo;
+                    {"{Brand name}"} AI is...&rdquo; if left blank)
+                  </span>
+                </Label>
+                <Textarea
+                  id="edit-loader-messages"
+                  rows={3}
+                  placeholder={
+                    "Understanding your question...\nLooking through official sources...\nPutting your answer together..."
+                  }
+                  value={editLoaderMessages}
+                  onChange={(e) => setEditLoaderMessages(e.target.value)}
                 />
               </div>
 
