@@ -8,8 +8,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+COPY requirements.txt requirements-pdf.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# Separate pass -- see requirements-pdf.txt for why this can't be resolved
+# together with the main requirements.txt in one pip invocation.
+RUN pip install --no-cache-dir -r requirements-pdf.txt
 
 COPY . .
 

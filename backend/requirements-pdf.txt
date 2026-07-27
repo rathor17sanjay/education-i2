@@ -1,0 +1,11 @@
+# Installed in a separate pip pass (see Dockerfile) -- pdfplumber's Pillow
+# requirement (>=12.2.0) directly conflicts with fastembed 0.4.2's declared
+# Pillow<11.0.0, so resolving both in one `pip install` is impossible. A
+# second pass installs these afterward, upgrading pillow past what fastembed
+# declared; this matches what already happened organically in local dev
+# (packages installed incrementally over time) and works fine at runtime --
+# fastembed doesn't actually touch Pillow's newer APIs.
+pdfplumber==0.11.10
+pypdfium2==5.12.1
+pytesseract==0.3.13
+pillow==12.3.0

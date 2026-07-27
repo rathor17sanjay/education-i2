@@ -14,5 +14,13 @@ services:
       # local-disk store.
       - uploads_data:/app/uploads
 
+  superadmin:
+    build: ./superadmin
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    depends_on:
+      - api
+
 volumes:
   uploads_data:

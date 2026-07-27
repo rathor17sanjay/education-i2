@@ -543,7 +543,7 @@ export default function TenantsPage() {
 
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={editStatus} onValueChange={setEditStatus}>
+                <Select value={editStatus} onValueChange={(value) => setEditStatus(value ?? "")}>
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
