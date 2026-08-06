@@ -39,28 +39,26 @@ const _EMPTY_THEME: TenantTheme = {
   loader_messages: null,
 };
 
-/** Client-side (browser) fetch -- relative path, covered by the /api/:path*
- * rewrite in next.config.ts. Used from Client Components like QueryView. */
-export async function fetchTenantTheme(): Promise<TenantTheme> {
-  try {
-    const res = await fetch(`/api/${TENANT_SLUG}/theme`, { cache: "no-store" });
-    if (!res.ok) return _EMPTY_THEME;
-    return await res.json();
-  } catch {
-    return _EMPTY_THEME;
-  }
-}
-
 /** Server-side (Server Component) fetch -- there's no browser/current-origin
  * context during SSR for a relative URL to resolve against, so this calls
  * the backend directly (server-to-server, not subject to the mixed-content
- * restriction the rewrite exists for). Used once in the root layout so the
- * theme is baked into the initial HTML instead of flashing in after a
- * client-side fetch. */
+ * restriction the rewrite exists for). Used in the root layout and the
+ * query page (Next.js memoizes identical GET fetches within one render
+ * pass, so calling this in both costs one real network call, not two) --
+ * theme is baked into the initial HTML/props instead of flashing in after
+ * a client-side fetch.
+ *
+ * Cached for 60s (`next.revalidate`) rather than `no-store` -- branding is
+ * admin-edited rarely, not real-time data, so re-fetching fresh on every
+ * single page view was pure added latency (a live round trip to the
+ * backend before any HTML could render) for no real freshness benefit. A
+ * superadmin edit now takes up to ~60s to appear instead of being instant. */
 export async function fetchTenantThemeServer(): Promise<TenantTheme> {
   const backendUrl = process.env.API_PROXY_TARGET ?? "http://159.223.72.11:8000";
   try {
-    const res = await fetch(`${backendUrl}/api/${TENANT_SLUG}/theme`, { cache: "no-store" });
+    const res = await fetch(`${backendUrl}/api/${TENANT_SLUG}/theme`, {
+      next: { revalidate: 60 },
+    });
     if (!res.ok) return _EMPTY_THEME;
     return await res.json();
   } catch {

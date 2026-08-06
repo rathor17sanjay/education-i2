@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   streamQuery,
-  fetchTenantTheme,
   TENANT_SLUG,
   type BlocksPayload,
+  type TenantTheme,
   type TitlePayload,
 } from "@/lib/api";
 import BlockRenderer from "@/components/blocks/BlockRenderer";
@@ -136,21 +136,18 @@ function GeneratingMoreContent({ message }: { message: string }) {
   );
 }
 
-export default function QueryView({ question }: { question: string }) {
+export default function QueryView({
+  question,
+  theme,
+}: {
+  question: string;
+  theme: TenantTheme;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState<TitlePayload | null>(null);
   const [blocks, setBlocks] = useState<BlocksPayload | null>(null);
   const [blocksVisible, setBlocksVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<{
-    logo_url: string | null;
-    brand_name: string | null;
-    loader_messages: string | null;
-  }>({
-    logo_url: null,
-    brand_name: null,
-    loader_messages: null,
-  });
   // Memoized so the array reference only changes when the actual inputs do
   // -- useRotatingMessage's effect depends on this array and resets its
   // rotation to message 0 whenever it sees a new reference, so recomputing
@@ -161,21 +158,6 @@ export default function QueryView({ question }: { question: string }) {
     [theme.brand_name, theme.loader_messages],
   );
   const loaderMessage = useRotatingMessage(messages, question);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchTenantTheme().then((t) => {
-      if (!cancelled)
-        setTheme({
-          logo_url: t.logo_url,
-          brand_name: t.brand_name,
-          loader_messages: t.loader_messages,
-        });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
